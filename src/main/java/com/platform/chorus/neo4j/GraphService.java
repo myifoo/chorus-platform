@@ -11,4 +11,5 @@ public interface GraphService {
     void createNode(String labels, String properties);
     void deleteNode(String labels);
     void createRelation(String node1, String node2, String relation);
+    void clear();
 }

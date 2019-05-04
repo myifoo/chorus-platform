@@ -1,0 +1,26 @@
+{
+  "name": "张二虎",
+  "type": "chorus.Pupil",
+  "creator": "a",
+  "tags": [],
+  "grade": 0,
+  "description": "",
+  "associates": [],
+  "values":[
+    ["chorus.Pupil", "name", "string",  "张二虎"],
+    ["chorus.Pupil", "age", "integer", 20],
+    ["chorus.Pupil", "gender", "string", "male"],
+    ["chorus.Pupil", "id", "integer", 10001],
+    ["chorus.Pupil", "hobby", "string", "football"]
+  ],
+  "refs": [
+    {
+      "name": "上海中学",
+      "type": "chorus.School",
+      "values": [
+        ["chorus.School", "name", "string", "上海中学"],
+        ["chorus.School", "address", "string", "上海市中心"]
+      ]
+    }
+  ]
+}

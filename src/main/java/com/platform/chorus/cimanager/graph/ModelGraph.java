@@ -58,6 +58,15 @@ public class ModelGraph implements Graph<Model> {
         return types;
     }
 
+    public List<String> getExtendType(String type) {
+        StatementResult result = graph.query(String.format("match (a:%s)-[r:%s *1..5]->(b) return b.domain, b.name", buildClassNodeId(type), EXTEND));
+
+        List<String> types = result.stream().map(r -> r.get(0).asString() + "." + r.get(1).asString()).collect(Collectors.toList());
+        types.add(type);
+
+        return types;
+    }
+
     private String getId(String domain, String name) {
         return String.format("%s:%s:%s", "class", buildCommonId(domain), name);
     }

@@ -8,12 +8,13 @@ import com.platform.chorus.cimanager.graph.FieldGraph;
 import com.platform.chorus.cimanager.graph.ModelGraph;
 import com.platform.chorus.jooq.tables.daos.*;
 import com.platform.chorus.jooq.tables.pojos.*;
+import com.platform.chorus.neo4j.GraphService;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.platform.chorus.jooq.Tables.*;
@@ -35,6 +36,7 @@ public class CimServiceImpl implements CimService {
     private EntityDao entityDao;
     private ValueDao valueDao;
     private DSLContext dsl;
+    private GraphService graphService;
 
     public CimServiceImpl(
             ModelGraph modelGraph,
@@ -46,7 +48,8 @@ public class CimServiceImpl implements CimService {
             CollectorDao collectorDao,
             EntityDao entityDao,
             ValueDao valueDao,
-            DSLContext dsl
+            DSLContext dsl,
+            GraphService graphService
     ) {
         this.modelGraph = modelGraph;
         this.fieldGraph = fieldGraph;
@@ -58,6 +61,17 @@ public class CimServiceImpl implements CimService {
         this.entityDao = entityDao;
         this.valueDao = valueDao;
         this.dsl = dsl;
+        this.graphService = graphService;
+    }
+
+    @Override
+    public void clear() {
+        dsl.delete(MODEL).where(MODEL.ID.gt(0)).execute();
+        dsl.delete(COLLECTOR).where(COLLECTOR.ID.gt(0)).execute();
+        dsl.delete(FIELD).where(FIELD.ID.gt(0)).execute();
+        dsl.delete(ENTITY).where(ENTITY.ID.gt(0)).execute();
+        dsl.delete(VALUE).where(VALUE.ID.gt(0)).execute();
+        graphService.clear();
     }
 
     @Override
@@ -81,19 +95,67 @@ public class CimServiceImpl implements CimService {
     }
 
     @Override
+    public List<String> getExtends(String type) {
+        List<String> types = null;
+        try {
+            types = modelGraph.getExtendType(type);
+        } catch (Exception e) {
+            throwGraphAccessException("fetch related type failed", e);
+        }
+
+        return types;
+    }
+
+    @Override
     public List<Field> getFields() {
         return fieldDao.findAll();
     }
 
     @Override
     public List<Field> getFields(String owner) {
-        List<String> types = modelGraph.getRelatedType(owner);
+
+        List<String> types = null;
+        try {
+            types = modelGraph.getRelatedType(owner);
+        } catch (Exception e) {
+            throwGraphAccessException("fetch related type failed", e);
+        }
+
         return fieldDao.fetchByOwner(types.toArray(new String[0]));
     }
 
     @Override
     public List<Collector> getCollectors() {
         return collectorDao.findAll();
+    }
+
+
+    @Override
+    public Integer getEntityIdByValues(List<Value> values) {
+        List<Integer> list = new ArrayList<>();
+
+        for (Value value : values) {
+            List<Integer> ids = dsl.select().from(VALUE)
+                    .where(VALUE.NAME.eq(value.getName()))
+                    .and(VALUE.TYPE.eq(value.getType()))
+                    .and(VALUE.VALUE_.eq(value.getValue()))
+                    .fetch(VALUE.OWNER);
+
+            if (Objects.isNull(ids) || ids.isEmpty()) {
+                return null;
+            }
+
+            if (list.isEmpty()) {
+                list.addAll(ids);
+            } else {
+                list.retainAll(ids);
+                if (list.isEmpty()) {
+                    return null;
+                }
+            }
+        }
+
+        return list.stream().distinct().collect(Collectors.toList()).get(0);
     }
 
     @Override
@@ -185,7 +247,26 @@ public class CimServiceImpl implements CimService {
     }
 
     @Override
+    public Integer createEntity(Entity entity, List<Value> values) {
+        Integer id = getEntityIdByValues(values);
+
+        if (Objects.nonNull(id)) {
+            return id;
+        }
+
+        entityDao.insert(entity);
+        values.forEach(v-> v.setOwner(entity.getId()));
+        valueDao.insert(values);
+        return entity.getId();
+    }
+
+    @Override
     public List<Integer> createModels(List<Model> models) {
+        if (Objects.isNull(models) || models.isEmpty()) {
+            logger.error("models is null");
+            return null;
+        }
+
         try {
             modelDao.insert(models);
         } catch (Exception e) {
@@ -203,6 +284,11 @@ public class CimServiceImpl implements CimService {
 
     @Override
     public List<Integer> createFields(List<Field> fields) {
+        if (Objects.isNull(fields) || fields.isEmpty()) {
+            logger.error("fields is null");
+            return null;
+        }
+
         try {
             fieldDao.insert(fields);
         } catch (Exception e) {
@@ -220,6 +306,11 @@ public class CimServiceImpl implements CimService {
 
     @Override
     public List<Integer> createCollectors(List<Collector> collectors) {
+        if (Objects.isNull(collectors) || collectors.isEmpty()) {
+            logger.error("collectors is null");
+            return null;
+        }
+
         try {
             collectorDao.insert(collectors);
         } catch (Exception e) {
@@ -329,9 +420,14 @@ public class CimServiceImpl implements CimService {
 
     @Override
     public List<String> getModelFullName() {
-        return dsl.resultQuery("select concat(package,'.',name) from public.model") // hard coding
-                .fetch()
-                .getValues(0, String.class);
+        try {
+            return dsl.resultQuery("select concat(domain,'.',name) from public.model") // hard coding
+                    .fetch()
+                    .getValues(0, String.class);
+        } catch (Exception e) {
+            throwDataAccessException("get model full name failed", e);
+            return null;
+        }
     }
 
     private void throwDataAccessException(String message, Exception e) {

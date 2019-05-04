@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * Create by A.T on 2019/4/30
  */
 @Configuration
-public class JooqConfiguration {
+public class DaoConfiguration {
     @Autowired
     private org.jooq.Configuration configuration;
 

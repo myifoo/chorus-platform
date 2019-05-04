@@ -1,6 +1,7 @@
 package com.platform.chorus.web;
 
 import com.platform.chorus.cimanager.exception.DaoException;
+import com.platform.chorus.web.exception.BadRequestException;
 import com.platform.chorus.web.model.ErrorBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +20,15 @@ public class ChorusControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DaoException.class)
     @ResponseBody
-    ResponseEntity<?> handleBadRequestException(HttpServletRequest request, Throwable e) {
+    ResponseEntity<?> handleDaoException(HttpServletRequest request, Throwable e) {
         return new ResponseEntity<>(new ErrorBody(e.getMessage(), e.getClass().getSimpleName(), HttpStatus.INTERNAL_SERVER_ERROR.value()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(ServerInternalException.class)
+
+    @ExceptionHandler(BadRequestException.class)
     @ResponseBody
-    ResponseEntity<?> handleServerInternalException(HttpServletRequest request, Throwable e) {
-        return new ResponseEntity<>("internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+    ResponseEntity<?> handleBadRequestException(HttpServletRequest request, Throwable e) {
+        return new ResponseEntity<>(new ErrorBody(e.getMessage(), e.getClass().getSimpleName(), HttpStatus.BAD_REQUEST.value()), HttpStatus.BAD_REQUEST);
     }
+
 }

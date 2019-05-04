@@ -1,9 +1,11 @@
 package com.platform.chorus.web;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.platform.chorus.ChorusPlatformApplication;
 import com.platform.chorus.web.exception.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,10 +30,15 @@ public class ServerController {
         return "server shutdown";
     }
 
-    @RequestMapping("/error")
-    public String error() {
-        throw new BadRequestException();
+    @RequestMapping("/json")
+    public String test(@RequestBody String json) {
+        System.out.println(json);
+        return json;
     }
 
-
+    @RequestMapping("/node")
+    public String test2(@RequestBody JsonNode json) {
+        System.out.println(json);
+        return "hello";
+    }
 }

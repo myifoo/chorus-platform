@@ -1,0 +1,104 @@
+{
+  "models": [
+    {
+      "domain": "chorus",
+      "name": "Person"
+    },
+    {
+      "domain": "chorus",
+      "name": "Student",
+      "extend": "chorus.Person"
+    },
+    {
+      "domain": "chorus",
+      "name": "Pupil",
+      "extend": "chorus.Student"
+    },
+    {
+      "domain": "chorus",
+      "name": "CollegeStudent",
+      "extend": "chorus.Student"
+    },
+    {
+      "domain": "chorus",
+      "name": "Teacher",
+      "extend": "chorus.Person"
+    },
+    {
+      "domain": "chorus",
+      "name": "EnglishTeacher",
+      "extend": "chorus.Teacher"
+    },
+    {
+      "domain": "chorus",
+      "name": "School"
+    },
+    {
+      "domain": "chorus",
+      "name": "PrimarySchool",
+      "extend": "chorus.School"
+    },
+    {
+      "domain": "chorus",
+      "name": "CollegeSchool",
+      "extend": "chorus.School"
+    },
+    {
+      "domain": "chorus",
+      "name": "Course"
+    },
+    {
+      "domain": "chorus",
+      "name": "EnglishCourse",
+      "extend": "chorus.Course"
+    },
+    {
+      "domain": "chorus",
+      "name": "Class"
+    }
+  ],
+  "collectors": [
+  ],
+  "fields": [
+    {
+      "owner": "chorus.Person",
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "owner": "chorus.Person",
+      "name": "age",
+      "type": "integer"
+    },
+    {
+      "owner": "chorus.Person",
+      "name": "gender",
+      "type": "string"
+    },
+    {
+      "owner": "chorus.Student",
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "owner": "chorus.Student",
+      "name": "school",
+      "type": "chorus.School"
+    },
+    {
+      "owner": "chorus.School",
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "owner": "chorus.School",
+      "name": "address",
+      "type": "string"
+    },
+    {
+      "owner": "chorus.Pupil",
+      "name": "hobby",
+      "type": "string"
+    }
+  ]
+}

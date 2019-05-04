@@ -43,4 +43,10 @@ public class GraphServiceImpl implements GraphService {
     public void createRelation(String node1, String node2, String relation) {
         execute(String.format("MATCH (a:%s), (b:%s) CREATE (a)-[r:%s]->(b)", node1, node2, relation));
     }
+
+    @Override
+    public void clear() {
+        execute("match (a)-[r]-(b) delete r");
+        execute("match (n) delete (n)");
+    }
 }

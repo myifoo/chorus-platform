@@ -1,10 +1,14 @@
 package com.platform.chorus.web.controller;
 
 import com.platform.chorus.cimanager.CimService;
+import com.platform.chorus.jooq.tables.pojos.Collector;
+import com.platform.chorus.jooq.tables.pojos.Field;
 import com.platform.chorus.jooq.tables.pojos.Model;
 import com.platform.chorus.web.model.ErrorBody;
+import com.platform.chorus.web.model.MetaModel;
 import com.platform.chorus.web.model.ResponseBody;
 import com.platform.chorus.web.model.SuccessBody;
+import com.platform.chorus.web.validator.MetaValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +16,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * Create by A.T on 2019/4/30
@@ -20,98 +27,69 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @RequestMapping(value = "/meta")
 public class MetaController {
     @Autowired
-    CimService cimService;
+    private CimService cimService;
 
-    @RequestMapping(value = "/class", produces = "application/json", consumes = "application/json", method = RequestMethod.POST)
-    public ResponseEntity<? extends ResponseBody> createClass(@RequestBody Model model) {
+    @Autowired
+    private MetaValidator validator;
 
-        return new ResponseEntity<>(new SuccessBody("createClass single class model success", cimService.createModel(model)), HttpStatus.OK);
+    @RequestMapping(value = "/import", produces = "application/json", consumes = "application/json", method = RequestMethod.POST)
+    public ResponseEntity<? extends ResponseBody> importMeta(@RequestBody MetaModel meta) {
+        validator.validate(meta);
+        cimService.createModels(meta.getModels());
+        cimService.createCollectors(meta.getCollectors());
+        cimService.createFields(meta.getFields());
+
+        return new ResponseEntity<>(new SuccessBody("import meta success", null), HttpStatus.OK);
     }
-//
-//    @RequestMapping(value = "/classes", produces = "application/json", consumes = "application/json", method = RequestMethod.POST)
-//    public ResponseEntity<? extends ResponseBody> createClass(@RequestBody List<ClassModel> models) {
-//        try {
-//            SuccessResponseBody response = new SuccessResponseBody();
-//            response.setMessage("createClass class model success");
-//            response.setResult(service.createClass(models));
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new ErrorResponseBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), e.getClass().getName()), HttpStatus.NOT_IMPLEMENTED);
-//        }
-//    }
-//
-//    @RequestMapping(value = "/classes", produces = "application/json", method = RequestMethod.GET)
-//    public ResponseEntity<? extends ResponseBody> getAllClass() {
-//        try {
-//            SuccessResponseBody response = new SuccessResponseBody();
-//            response.setMessage("get all class models success");
-//            response.setResult(service.getAllClass());
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new ErrorResponseBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), e.getClass().getName()), HttpStatus.NOT_IMPLEMENTED);
-//        }
-//    }
-//
-//    @RequestMapping(value = "/classes/html", produces = "text/html", method = RequestMethod.GET)
-//    public String getAllClassHtml() {
-//        try {
-//            return service.getClassHtml();
-//        } catch (Exception e) {
-//            return "ERROR";
-//        }
-//    }
-//
-//    @RequestMapping(value = "/classes/name", produces = "application/json", method = RequestMethod.GET)
-//    public ResponseEntity<? extends ResponseBody> getAllClassFullName() {
-//        try {
-//            SuccessResponseBody response = new SuccessResponseBody();
-//            response.setMessage("get all class model names success");
-//            response.setResult(service.getAllClassFullName());
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new ErrorResponseBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), e.getClass().getName()), HttpStatus.NOT_IMPLEMENTED);
-//        }
-//    }
-//
-//    @RequestMapping(value = "/collectors/html", produces = "text/html", method = RequestMethod.GET)
-//    public String getAllCollectorHtml() {
-//        try {
-//            return service.getClassHtml();
-//        } catch (Exception e) {
-//            return "ERROR";
-//        }
-//    }
-//
-//    @RequestMapping(value = "/field", produces = "application/json", consumes = "application/json", method = RequestMethod.POST)
-//    public ResponseEntity<? extends ResponseBody> createField(@RequestBody FieldModel model) {
-//        try {
-//            SuccessResponseBody response = new SuccessResponseBody();
-//            response.setMessage("createClass single field model success");
-//            response.setResult(service.createField(model));
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new ErrorResponseBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), e.getClass().getName()), HttpStatus.NOT_IMPLEMENTED);
-//        }
-//    }
-//
-//    @RequestMapping(value = "/fields", produces = "application/json", method = RequestMethod.GET)
-//    public ResponseEntity<? extends ResponseBody> getAllField() {
-//        try {
-//            SuccessResponseBody response = new SuccessResponseBody();
-//            response.setMessage("get all field models success");
-//            response.setResult(service.getAllField());
-//            return new ResponseEntity<>(response, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new ErrorResponseBody(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), e.getClass().getName()), HttpStatus.NOT_IMPLEMENTED);
-//        }
-//    }
-//
-//    @RequestMapping(value = "/fields/html", produces = "text/html", method = RequestMethod.GET)
-//    public String getAllFieldHtml() {
-//        try {
-//            return service.getFieldHtml();
-//        } catch (Exception e) {
-//            return "ERROR";
-//        }
-//    }
+
+    @RequestMapping(value = "/clear", method = RequestMethod.GET)
+    public ResponseEntity<? extends ResponseBody> clear() {
+        cimService.clear();
+        return new ResponseEntity<>(new SuccessBody("clear meta success", null), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/model/extends", produces = "application/json")
+    public ResponseEntity<? extends ResponseBody> getExtends(@RequestParam(name = "type") String type) {
+        return new ResponseEntity<>(new SuccessBody("get model's extends success", cimService.getExtends(type)), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/model/fields", produces = "application/json")
+    public ResponseEntity<? extends ResponseBody> getFields(@RequestParam(name = "owner") String owner) {
+        return new ResponseEntity<>(new SuccessBody("get model's fields success", cimService.getFields(owner)), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/model", produces = "application/json", consumes = "application/json", method = RequestMethod.POST)
+    public ResponseEntity<? extends ResponseBody> createModel(@RequestBody Model model) {
+        return new ResponseEntity<>(new SuccessBody("create single model success", cimService.createModel(model)), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/collector", produces = "application/json", consumes = "application/json", method = RequestMethod.POST)
+    public ResponseEntity<? extends ResponseBody> createCollector(@RequestBody Collector collector) {
+        return new ResponseEntity<>(new SuccessBody("create single model success", cimService.createCollector(collector)), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/field", produces = "application/json", consumes = "application/json", method = RequestMethod.POST)
+    public ResponseEntity<? extends ResponseBody> createField(@RequestBody Field field) {
+        return new ResponseEntity<>(new SuccessBody("create single field success", cimService.createField(field)), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/model/html", produces = "text/html", method = RequestMethod.GET)
+    public ResponseEntity<String> getModelHtml() {
+        return new ResponseEntity<>(cimService.getModelHtml(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/field/html", produces = "text/html", method = RequestMethod.GET)
+    public  ResponseEntity<String> getFieldHtml() {
+        return new ResponseEntity<>(cimService.getFieldHtml(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/collector/html", produces = "text/html", method = RequestMethod.GET)
+    public  ResponseEntity<String> getCollectorHtml() {
+        return new ResponseEntity<>(cimService.getCollectorHtml(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/model/name", produces = "application/json", method = RequestMethod.GET)
+    public ResponseEntity<? extends ResponseBody> getModelName() {
+        return new ResponseEntity<>(new SuccessBody("get model names", cimService.getModelFullName()), HttpStatus.OK);
+    }
 }
