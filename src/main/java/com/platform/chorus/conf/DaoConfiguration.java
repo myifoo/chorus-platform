@@ -11,12 +11,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class JooqConfiguration {
-    private org.jooq.Configuration configuration;
-
     @Autowired
-    public JooqConfiguration(org.jooq.Configuration configuration) {
-        this.configuration = configuration;
-    }
+    private org.jooq.Configuration configuration;
 
     @Bean
     CollectorDao getCollectorDao() {
