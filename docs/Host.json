@@ -1,0 +1,44 @@
+{
+  "models": [
+    {
+      "domain": "chorus",
+      "name": "CPU"
+    },
+    {
+      "domain": "chorus",
+      "name": "Host"
+    },
+    {
+      "domain": "chorus",
+      "name": "Windows",
+      "extend": "chorus.Host"
+    },
+    {
+      "domain": "chorus",
+      "name": "NetDevice"
+    }
+  ],
+  "collectors": [
+    {
+      "name": "cpuCollector",
+      "in"
+    }
+  ],
+  "fields": [
+    {
+      "owner": "chorus.CPU",
+      "name": "load",
+      "type": "integer"
+    },
+    {
+      "owner": "chorus.Host",
+      "name": "cpu",
+      "type": "chorus.CPU"
+    },
+    {
+      "owner": "chorus.NetDevice",
+      "name": "cpu",
+      "type": "chorus.CPU"
+    }
+  ]
+}

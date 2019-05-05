@@ -1,26 +1,19 @@
 package com.platform.chorus.web.validator;
 
 import com.platform.chorus.cimanager.CimService;
-import com.platform.chorus.jooq.tables.daos.ModelDao;
 import com.platform.chorus.web.exception.BadRequestException;
 import com.platform.chorus.web.model.MetaModel;
 import org.apache.logging.log4j.util.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Create by A.T on 2019/4/30
  */
 @Service
 public class MetaValidator {
-    final static private Logger logger = LoggerFactory.getLogger(MetaValidator.class);
-
     @Autowired
     CimService service;
 

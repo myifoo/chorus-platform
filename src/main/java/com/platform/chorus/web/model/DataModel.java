@@ -1,7 +1,5 @@
 package com.platform.chorus.web.model;
 
-import com.platform.chorus.jooq.tables.pojos.Entity;
-
 import java.util.List;
 
 /**
